@@ -1,0 +1,159 @@
+<html lang="en">
+<head>
+    <?php $this->load->view("includes/head") ; ?>
+    <?php $this->load->view("includes/script") ; ?> 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        /* Arama çubuğunu tabloya yakın tutmak için hafif stil */
+        .search-container {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<?php $this->load->view("includes/modals") ?>
+<?php $this->load->view("includes/navbar") ?>
+<div class="main-content">
+    <?php $this->load->view("includes/navbar-top"); ?>
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-12">
+                <div class="header mt-md-5">
+                    <div class="header-body">
+                        <div class="row">
+                            <div class="col-md-11">
+                               En Alt Kategoriler
+                            </div>
+                            <a href="<?php echo base_url('admin/category_add/'); ?>"  class="btn btn-outline btn-primary btn-sm pull-right col-md-1" href=""> <i class="fe fe-plus"></i> Yeni Ekle </a>
+                        </div>
+                        <hr>
+                        
+                        <?php
+                        if (empty($categories)) {?>
+                            <div class="alert alert-danger text-center">
+                                <p>Burada Herhangi bir Veri Bulunmamaktadır. Yeni Kategori Eklemek İçin <a href="<?php echo base_url('admin/category_add'); ?>">Tıklayın</a> </p>
+                            </div>
+                        <?php } else { ?>
+
+                            <div class="row search-container">
+                                <div class="col-md-4 offset-md-8">
+                                    <input type="text" id="categorySearch" class="form-control" placeholder="Kategori Adı İle Filtrele...">
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="table-responsive mb-0">
+                                    <table id="categoryTable" class="table table-sm table-nowrap card-table">
+                                        <thead>
+                                        <th>ParentID</th>
+                                        <th>Başlık</th>
+                                        <th>Görsel</th>
+                                        <th>Ana Kategori</th>
+                                        <th>Üst Kategori</th>
+                                        <th>Alt Kategori</th>
+                                        <th>Ürün Sayısı</th>
+                                        <th>Durumu</th>
+                                        <th>İşlemler</th>
+                                        </thead>
+                                        <tbody>
+                                        <?php foreach ($categories as $key ){ ?>
+                                        <tr class="category-row"> <td><?php echo $key->parentID; ?></td>
+                                            <td class="category-title"><?php echo $key->title; ?></td> <td>
+                                                <div class="avatar avatar-sm p-2">
+                                                    <img class="img-fluid avatar-img rounded" width="100" src="<?php echo base_url("includes/images/category/$key->img") ?>">
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <?= getMastCat($key->parentCat,"title")?>
+                                            </td>
+                                            <td>
+                                                <?= getTopCat($key->parentTopCat)?>
+                                            </td>
+
+                                            <td>
+                                                <?= getTopCat($key->parentSubCat)?>
+                                            </td>
+                                            <td>
+                                                <?= getPrdWithCat($key->parentID,"bottom_cat_id"); ?>
+                                            </td>
+                                            <td align="">
+                                                <?php if ($key->status==1) {?>
+                                                    <button class="btn btn-success btn-sm">Aktif</button>
+                                                <?php }else { ?>
+                                                    <button class="btn btn-danger btn-sm">Pasif</button>
+                                                <?php } ?>
+                                            </td>
+                                            <td align="">
+                                                <a href="<?= base_url("admin/category_update/$key->parentID") ?>"  class="btn btn-warning btn-sm btn-outline" href=""><i class="fe fe-edit">&ensp;</i>Düzenle</a>
+                                                <a href="<?php echo base_url("admin/bottom_cat_delete/" . $key->parentID); ?>"
+                                                   onclick="return confirm('Silmek istediğinize emin misiniz? Eğer silerseniz bağlı ürünlerde silenecek.')"
+                                                   class="btn btn-sm btn-danger"><i class="fe fe-trash-2"></i>Sil
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                        <?php }  ?>
+                                    </table>
+                                </div>
+                            </div>
+                        <?php } ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $("#categorySearch").on("keyup", function() {
+            var value = $(this).val().toLowerCase(); // Kullanıcının yazdığı değeri al ve küçük harfe çevir
+            
+            // Tablo içindeki her bir kategori satırını döngüye al
+            $(".category-row").filter(function() {
+                var title = $(this).find(".category-title").text().toLowerCase(); // Kategori adını al
+                
+                // Eğer kategori adı, aranan değeri içeriyorsa (indexOf > -1), göster, yoksa gizle.
+                $(this).toggle(title.indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+<?php if($this->session->flashdata("category_update")){ ?>
+    <script type="text/javascript">
+        iziToast.success({
+            title: 'İşlem Başarılı',
+            message: 'Kategori Başarıyla Düzenlendi',
+            color: 'green',
+            position: 'topCenter'
+        });
+    </script>
+<?php } ?>
+
+<?php if($this->session->flashdata("category_delete")){ ?>
+    <script type="text/javascript">
+        iziToast.success({
+            title: 'İşlem Başarılı',
+            message: 'Kategori Başarıyla Silindi',
+            color: 'green',
+            position: 'topCenter'
+        });
+    </script>
+
+<?php } ?>
+
+<?php if($this->session->flashdata("category_add")){ ?>
+    <script type="text/javascript">
+        iziToast.success({
+            title: 'İşlem Başarılı',
+            message: 'Kategori Başarıyla Eklendi',
+            color: 'green',
+            position: 'topCenter'
+        });
+    </script>
+<?php } ?>
+
+<?php $this->load->view("includes/script") ; ?>
+</body>
+</html>
